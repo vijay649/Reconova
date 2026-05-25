@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        Amazon Invoice Extractor
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
+
+</head>
+
+<body>
+
+    <div class="container">
+
+        <h1>
+            Amazon Invoice Extractor
+        </h1>
+
+        <p>
+            Select Folder Containing Amazon PDFs
+        </p>
+
+        <input
+            type="file"
+            id="folderInput"
+            webkitdirectory
+            directory
+            multiple
+        >
+
+        <button onclick="uploadFolder()">
+            Generate Excel
+        </button>
+
+        <p id="status"></p>
+
+    </div>
+
+    <script src="script.js"></script>
+
+</body>
+
+</html>
