@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -11,7 +12,7 @@
     >
 
     <title>
-        Amazon Invoice Extractor
+        Invoice Extractor
     </title>
 
     <link
@@ -26,11 +27,21 @@
     <div class="container">
 
         <h1>
-            Amazon Invoice Extractor
+            Invoice Extractor
         </h1>
 
         <p>
-            Select Folder Containing Amazon PDFs
+            Select Invoice Source
+        </p>
+
+        <select id="sourceSelect">
+            <option value="amazon">Amazon</option>
+            <option value="swiggy">Swiggy</option>
+            <option value="zomato">Zomato</option>
+        </select>
+
+        <p>
+            Select Folder Containing PDFs
         </p>
 
         <input
