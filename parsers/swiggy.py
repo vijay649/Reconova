@@ -1,4 +1,3 @@
-
 from fastapi import FastAPI, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
@@ -10,21 +9,17 @@ import os
 import shutil
 from openpyxl import load_workbook
 
-# app = FastAPI()
+app = FastAPI()
 
-# app.add_middleware(
-#     CORSMiddleware,
-#     allow_origins=["*"],
-#     allow_credentials=True,
-#     allow_methods=["*"],
-#     allow_headers=["*"],
-# )
-
-# BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
-BASE_DIR = os.path.dirname(
-    os.path.dirname(os.path.abspath(__file__))
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
+
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 UPLOAD_FOLDER = os.path.join(BASE_DIR, "uploads")
 OUTPUT_FOLDER = os.path.join(BASE_DIR, "output")
@@ -124,6 +119,13 @@ def process_swiggy_pdf(full_path, file_name):
         r'Restaurant\s*/\s*Store ID\s*:\s*([0-9]+)',
         text
     )
+    
+    # Restaurant ID Fallback Modification
+    if restaurant_id == "":
+        restaurant_id = extract(
+            r'Restaurant\s*/\s*Store Name\s*:\s*.*?\(([0-9]+)\)',
+            text
+        )
 
     gstin_matches = re.findall(
         r'GSTIN\s*:\s*([A-Z0-9]+)',
@@ -175,6 +177,7 @@ def process_swiggy_pdf(full_path, file_name):
     if not matches:
         return []
 
+    # Updated invoice_row mapping structure
     invoice_row = {
         "File Name": file_name,
         "Invoice No": invoice_no,
@@ -188,21 +191,52 @@ def process_swiggy_pdf(full_path, file_name):
         "Restaurant Name": restaurant_name,
         "Restaurant ID": restaurant_id,
         "Customer GSTIN": customer_gstin,
-        "Taxable Amount": 0.0,
+        "Unit Price": 0.0,
+        "Base Amount": 0.0,
+        "Discount": 0.0,
+        "Taxable Value": 0.0,
+        "CGST Rate": 0.0,
         "CGST Amount": 0.0,
+        "SGST Rate": 0.0,
         "SGST Amount": 0.0,
+        "IGST Rate": 0.0,
         "IGST Amount": 0.0,
+        "Line Total": 0.0,
         "Other Charges - Reimbursement of Discount": reimbursement_discount,
-        "Grand Total": grand_total
+        "Grand Total": grand_total,
+        "Service Fee": 0.0,
+        "Lead Gen Fees": 0.0,
+        "Marketing services": 0.0
     }
+
+    # Tax Rate Counters Initialization
+    cgst_rate_count = 0
+    sgst_rate_count = 0
+    igst_rate_count = 0
 
     for row in matches:
         description = clean_text(row[1])
+
+        # Full Row Parsing Implementation
+        unit_price = clean_number(row[4])
+        base_amount = clean_number(row[5])
+        discount = clean_number(row[6])
         assessable_value = clean_number(row[7])
+        cgst_rate = clean_number(row[8])
         cgst_amount = clean_number(row[9])
+        sgst_rate = clean_number(row[10])
         sgst_amount = clean_number(row[11])
+        igst_rate = clean_number(row[12])
         igst_amount = clean_number(row[13])
 
+        line_total = round(
+            assessable_value +
+            cgst_amount +
+            sgst_amount +
+            igst_amount,
+            2
+        )
+        
         final_description = ""
 
         for desc in VALID_DESCRIPTIONS:
@@ -213,27 +247,52 @@ def process_swiggy_pdf(full_path, file_name):
         if not final_description:
             continue
 
-        invoice_row["Taxable Amount"] += assessable_value
+        # Accumulating Totals
+        invoice_row["Unit Price"] += unit_price
+        invoice_row["Base Amount"] += base_amount
+        invoice_row["Discount"] += discount
+        invoice_row["Taxable Value"] += assessable_value
         invoice_row["CGST Amount"] += cgst_amount
         invoice_row["SGST Amount"] += sgst_amount
         invoice_row["IGST Amount"] += igst_amount
+        invoice_row["Line Total"] += line_total
+
+        # Tax Rate Accumulation Loop Logic
+        if cgst_rate > 0:
+            invoice_row["CGST Rate"] += cgst_rate
+            cgst_rate_count += 1
+
+        if sgst_rate > 0:
+            invoice_row["SGST Rate"] += sgst_rate
+            sgst_rate_count += 1
+
+        if igst_rate > 0:
+            invoice_row["IGST Rate"] += igst_rate
+            igst_rate_count += 1
 
         if final_description not in invoice_row:
             invoice_row[final_description] = 0.0
 
         invoice_row[final_description] += assessable_value
 
+    # Compute averaged final Tax Rates after the loop finishes
+    if cgst_rate_count:
+        invoice_row["CGST Rate"] = round(invoice_row["CGST Rate"] / cgst_rate_count, 2)
+
+    if sgst_rate_count:
+        invoice_row["SGST Rate"] = round(invoice_row["SGST Rate"] / sgst_rate_count, 2)
+
+    if igst_rate_count:
+        invoice_row["IGST Rate"] = round(invoice_row["IGST Rate"] / igst_rate_count, 2)
+
     results.append(invoice_row)
     return results
 
-# @app.get("/")
-# def home():
-#     return {"message": "Swiggy Invoice API Running"}
+@app.get("/")
+def home():
+    return {"message": "Swiggy Invoice API Running"}
 
-# @app.post("/swiggy")
-# async def upload_swiggy(files: List[UploadFile] = File(...)):
-
-
+@app.post("/swiggy")
 async def upload_swiggy(files: List[UploadFile] = File(...)):
     results = []
 
@@ -267,6 +326,13 @@ async def upload_swiggy(files: List[UploadFile] = File(...)):
     wb = load_workbook(output_file)
     ws = wb.active
 
+    # Apply Float/Int "0.00" Number Formatting
+    for row in ws.iter_rows(min_row=2):
+        for cell in row:
+            if isinstance(cell.value, (int, float)):
+                cell.number_format = "0.00"
+
+    # Set Column Auto Width Bounds
     for col in ws.columns:
         width = max(len(str(c.value)) if c.value else 0 for c in col)
         ws.column_dimensions[col[0].column_letter].width = width + 5
