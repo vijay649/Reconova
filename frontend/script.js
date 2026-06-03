@@ -296,8 +296,8 @@ async function uploadFolder() {
         amazon: "https://reconova-983m.onrender.com/amazon",
         swiggy: "https://reconova-983m.onrender.com/swiggy",
         zomato: "https://reconova-983m.onrender.com/zomato",
-        blinkit: "http://localhost:8000/blinkit",
-        flipkart: "http://localhost:8000/flipkart"
+        blinkit: "https://reconova-983m.onrender.com/blinkit",
+        flipkart: "https://reconova-983m.onrender.com/flipkart"
     };
 
     const endpoint = apiMap[source];
