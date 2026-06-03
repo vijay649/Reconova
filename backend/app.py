@@ -33,6 +33,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from parsers.amazon import upload_amazon
 from parsers.swiggy import upload_swiggy
 from parsers.zomato import upload_zomato
+from parsers.blinkit import upload_blinkit
+from parsers.flipkart import upload_flipkart
 
 app = FastAPI()
 
@@ -53,3 +55,5 @@ def home():
 app.post("/amazon")(upload_amazon)
 app.post("/swiggy")(upload_swiggy)
 app.post("/zomato")(upload_zomato)
+app.post("/blinkit")(upload_blinkit)
+app.post("/flipkart")(upload_flipkart)

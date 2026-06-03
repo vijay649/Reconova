@@ -23,3 +23,14 @@ Upload PDFs and click Generate Excel
 
 IMPORTANT:
 Backend CMD window must stay running.
+
+
+
+
+
+CREATE TABLE users(
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    fullname VARCHAR(100),
+    email VARCHAR(200) UNIQUE,
+    password VARCHAR(255)
+);
