@@ -6,13 +6,13 @@
     <title>Reconova | Invoice Parser</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="/css/style.css">
 
     <script>
         (function () {
             const token = localStorage.getItem("token");
             if (!token || token.trim() === "") {
-                window.location.replace("../pages/login.html");
+                window.location.replace("/pages/login.html");
             }
         })();
     </script>
@@ -106,8 +106,8 @@
         </div>
     </main>
 
-    <script src="../js/config.js"></script>
-    <script src="../js/script.js"></script>
+    <script src="/js/config.js"></script>
+    <script src="/js/script.js"></script>
 
     <script>
         document.addEventListener("DOMContentLoaded", () => {
@@ -142,16 +142,16 @@
         function goDashboard() {
             const user = JSON.parse(localStorage.getItem("user"));
             if (user && user.role === "admin") {
-                window.location.href = "../pages/admin-dashboard.html";
+                window.location.href = "/pages/admin-dashboard.html";
             } else {
-                window.location.href = "../pages/dashboard.html";
+                window.location.href = "/pages/dashboard.html";
             }
         }
 
         function logout() {
             localStorage.removeItem("token");
             localStorage.removeItem("user");
-            window.location.href = "../pages/login.html";
+            window.location.href = "/pages/login.html";
         }
     </>
 </body>
