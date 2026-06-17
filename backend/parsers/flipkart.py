@@ -1,3 +1,14 @@
+from fastapi import Depends
+
+from sqlalchemy.orm import Session
+
+from auth.dependencies import get_current_user
+
+from database.database import get_db
+
+from database.models import UploadAnalytics, User
+
+
 from fastapi import UploadFile, File
 from fastapi.responses import FileResponse
  
@@ -38,7 +49,15 @@ def extract(pattern, text):
 # ---------------------------
 # MAIN API
 # ---------------------------
-async def upload_flipkart(files: list[UploadFile] = File(...)):
+async def upload_flipkart(files: list[UploadFile] = File(...),
+        db: Session = Depends(get_db),
+
+        current_user: User = Depends(
+            get_current_user
+        )
+    ):
+    
+    files_count = len(files)
  
     results = []
  
@@ -254,6 +273,21 @@ async def upload_flipkart(files: list[UploadFile] = File(...)):
  
     with pd.ExcelWriter(output_file, engine="openpyxl") as writer:
         df.to_excel(writer, index=False)
+        
+    if files_count > 0:
+
+        analytics = UploadAnalytics(
+
+            user_id=current_user.id,
+
+            source="flipkart",
+
+            pdf_count=files_count
+        )
+
+        db.add(analytics)
+
+        db.commit()
  
     return FileResponse(
         output_file,

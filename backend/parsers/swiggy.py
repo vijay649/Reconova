@@ -1,3 +1,14 @@
+from database.models import User 
+from fastapi import Depends
+
+from sqlalchemy.orm import Session
+
+from auth.dependencies import get_current_user
+
+from database.database import get_db
+
+from database.models import UploadAnalytics
+
 
 from fastapi import FastAPI, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
@@ -226,15 +237,17 @@ def process_swiggy_pdf(full_path, file_name):
     results.append(invoice_row)
     return results
 
-# @app.get("/")
-# def home():
-#     return {"message": "Swiggy Invoice API Running"}
 
-# @app.post("/swiggy")
-# async def upload_swiggy(files: List[UploadFile] = File(...)):
+async def upload_swiggy(files: List[UploadFile] = File(...),
 
+     db: Session = Depends(get_db),
 
-async def upload_swiggy(files: List[UploadFile] = File(...)):
+    current_user: User = Depends(
+        get_current_user
+    )
+):
+    files_count = len(files)
+    
     results = []
 
     for file in files:
@@ -273,6 +286,21 @@ async def upload_swiggy(files: List[UploadFile] = File(...)):
 
     wb.save(output_file)
     wb.close()
+    
+    if files_count > 0:
+
+        analytics = UploadAnalytics(
+
+            user_id=current_user.id,
+
+            source="swiggy",
+
+            pdf_count=files_count
+        )
+
+        db.add(analytics)
+
+        db.commit()
 
     return FileResponse(
         path=output_file,

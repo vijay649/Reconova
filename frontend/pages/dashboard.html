@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<title>
+Reconova Dashboard
+</title>
+
+
+<link
+rel="stylesheet"
+href="../css/dashboard.css">
+
+
+</head>
+
+
+<body>
+
+
+<div class="dashboard-container">
+
+
+<!-- TOP NAV -->
+
+<header class="top-navbar">
+
+
+<div class="logo">
+
+Reconova
+
+</div>
+
+
+<button
+class="logout-btn"
+onclick="logout()">
+
+Logout
+
+</button>
+
+
+</header>
+
+
+
+
+
+<!-- PROFILE CARD -->
+
+
+<section class="profile-card">
+
+
+<h2 id="username">
+Loading...
+</h2>
+
+
+<div class="profile-info">
+
+
+<p>
+Email:
+<span id="email">
+</span>
+</p>
+
+
+<p>
+<span id="role">
+</span>
+</p>
+
+
+<p>
+Status:
+<span id="status">
+Active
+</span>
+</p>
+
+
+</div>
+
+
+</section>
+
+
+
+
+
+
+<!-- ANALYTICS -->
+
+
+<h2 class="section-title">
+
+Upload Analytics
+
+</h2>
+
+
+
+<div class="analytics-grid">
+
+
+
+<div class="analytics-card total">
+
+
+<h3>
+Total Uploads
+</h3>
+
+
+<p id="totalUploads">
+0
+</p>
+
+
+</div>
+
+
+
+
+<div class="analytics-card">
+
+<h3>
+Amazon
+</h3>
+
+
+<p id="amazonCount">
+0
+</p>
+
+
+</div>
+
+
+
+
+
+<div class="analytics-card">
+
+
+<h3>
+Swiggy
+</h3>
+
+
+<p id="swiggyCount">
+0
+</p>
+
+
+</div>
+
+
+
+
+
+<div class="analytics-card">
+
+
+<h3>
+Zomato
+</h3>
+
+
+<p id="zomatoCount">
+0
+</p>
+
+
+</div>
+
+
+
+
+
+
+<div class="analytics-card">
+
+
+<h3>
+Blinkit
+</h3>
+
+
+<p id="blinkitCount">
+0
+</p>
+
+
+</div>
+
+
+
+
+
+
+<div class="analytics-card">
+
+
+<h3>
+Flipkart
+</h3>
+
+
+<p id="flipkartCount">
+0
+</p>
+
+
+</div>
+
+
+
+</div>
+
+
+
+
+
+
+<!-- RECENT ACTIVITY -->
+
+
+<section class="activity-card">
+
+
+<h2>
+Recent Activity
+</h2>
+
+
+<div id="activityList">
+
+Loading activity...
+
+</div>
+
+
+</section>
+
+
+
+
+
+
+<button
+class="parser-btn"
+onclick="goToParser()">
+
+
+Open Parser
+
+
+</button>
+
+
+
+
+
+
+</div>
+
+
+
+
+
+
+<script src="../js/config.js">
+</script>
+
+
+<script src="../js/dashboard.js">
+</script>
+
+
+</body>
+
+
+</html>

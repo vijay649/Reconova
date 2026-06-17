@@ -1,0 +1,443 @@
+/* ==========================================================================
+   RECONOVA PREMIUM INVOICE PARSER GLOBAL STYLES
+   ========================================================================== */
+
+:root {
+    /* Color Palette */
+    --bg-base: #f8fafc;
+    --bg-card: rgba(255, 255, 255, 0.85);
+    --text-main: #0f172a;
+    --text-muted: #64748b;
+    --border-color: #e2e8f0;
+    
+    /* Premium Themes */
+    --accent-blue: #2563eb;
+    --accent-blue-hover: #1d4ed8;
+    --accent-green: #10b981;
+    --accent-red: #ef4444;
+    --bg-navbar: #0f172a;
+    
+    /* Design Variables */
+    --radius-lg: 16px;
+    --radius-md: 12px;
+    --shadow-sm: 0 4px 6px -1px rgb(0 0 0 / 0.05);
+    --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.05), 0 8px 10px -6px rgb(0 0 0 / 0.05);
+    --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Base Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter', system-ui, sans-serif;
+}
+
+body.parser-body {
+    background-color: var(--bg-base);
+    color: var(--text-main);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+    position: relative;
+}
+
+/* Subtle Premium Dot Background Effect */
+body.parser-body::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
+    background-size: 16px 16px;
+    opacity: 0.4;
+    z-index: -1;
+}
+
+/* ==========================================================================
+   MODERN TOP NAVBAR STYLE
+   ========================================================================== */
+.navbar {
+    background-color: var(--bg-navbar);
+    color: #ffffff;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 40px;
+    box-shadow: var(--shadow-sm);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.nav-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.nav-logo {
+    background-color: var(--accent-blue);
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 18px;
+    border-radius: 10px;
+}
+
+.brand-name {
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+}
+
+.nav-right {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+}
+
+/* Navigation Inline Button */
+.nav-link-btn {
+    background: transparent;
+    border: none;
+    color: #94a3b8;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: var(--transition);
+    padding: 8px 12px;
+    border-radius: 8px;
+}
+
+.nav-link-btn:hover {
+    color: #ffffff;
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* Mini Profiler */
+.nav-user-profile {
+    display: flex;
+    align-items: center;
+    border-left: 1px solid #334155;
+    padding-left: 24px;
+}
+
+.user-meta {
+    display: flex;
+    flex-direction: column;
+}
+
+.user-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #f1f5f9;
+}
+
+.user-role-badge {
+    font-size: 10px;
+    font-weight: 700;
+    color: #38bdf8;
+    letter-spacing: 0.5px;
+    margin-top: 1px;
+}
+
+.user-role-badge.admin-theme {
+    color: #f43f5e; /* Elegant pinkish-red for admin status */
+}
+
+/* Minimalist Logout Button */
+.nav-logout-btn {
+    background-color: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    color: #f87171;
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.nav-logout-btn:hover {
+    background-color: var(--accent-red);
+    color: white;
+    border-color: var(--accent-red);
+}
+
+/* ==========================================================================
+   MAIN INTERFACE CONTAINER
+   ========================================================================== */
+.parser-wrapper {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+}
+
+.parser-card {
+    background: var(--bg-card);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    max-width: 800px;
+    width: 100%;
+    border-radius: var(--radius-lg);
+    padding: 40px;
+    box-shadow: var(--shadow-lg);
+}
+
+.card-header {
+    text-align: center;
+    margin-bottom: 35px;
+}
+
+.card-header h1 {
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -0.75px;
+    margin-bottom: 10px;
+}
+
+.card-header p {
+    color: var(--text-muted);
+    font-size: 15px;
+    line-height: 1.5;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+/* ==========================================================================
+   FORM CONTROLS & 2-STEP GRID GRID SYSTEM
+   ========================================================================== */
+.parser-grid-form {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 25px;
+    margin-bottom: 35px;
+}
+
+.form-control {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.form-control label {
+    font-size: 14px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.step-num {
+    background-color: var(--text-main);
+    color: #ffffff;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+/* Clean Select Dropdown UI */
+.select-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.clean-select {
+    width: 100%;
+    padding: 14px 16px;
+    font-size: 14px;
+    font-weight: 500;
+    background-color: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    color: var(--text-main);
+    appearance: none;
+    -webkit-appearance: none;
+    cursor: pointer;
+    transition: var(--transition);
+    box-shadow: var(--shadow-sm);
+}
+
+.clean-select:focus {
+    outline: none;
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+}
+
+/* Add custom arrow icon down inside drop wrapper */
+.select-wrapper::after {
+    content: "▼";
+    font-size: 10px;
+    color: var(--text-muted);
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+}
+
+/* Modern File Dropzone Zone Wrapper */
+.upload-dropzone {
+    position: relative;
+    width: 100%;
+}
+
+.hidden-input {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0; left: 0;
+    opacity: 0;
+    cursor: pointer;
+    z-index: 10;
+}
+
+.dropzone-trigger {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 22px 16px;
+    background-color: #ffffff;
+    border: 2px dashed var(--border-color);
+    border-radius: var(--radius-md);
+    text-align: center;
+    cursor: pointer;
+    transition: var(--transition);
+    box-shadow: var(--shadow-sm);
+    width: 100%;
+}
+
+.upload-icon {
+    font-size: 24px;
+    margin-bottom: 6px;
+    transition: transform 0.2s ease;
+}
+
+.upload-text-main {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--accent-blue);
+}
+
+.upload-text-sub {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 2px;
+}
+
+/* Dropzone Hover Effects */
+.upload-dropzone:hover .dropzone-trigger {
+    border-color: var(--accent-blue);
+    background-color: rgba(37, 99, 235, 0.01);
+}
+
+.upload-dropzone:hover .upload-icon {
+    transform: translateY(-2px);
+}
+
+/* ==========================================================================
+   PREMIUM SUBMIT CALL TO ACTION & STATUS SECTOR
+   ========================================================================== */
+.action-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 30px;
+}
+
+.premium-submit-btn {
+    width: 100%;
+    padding: 16px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #ffffff;
+    background-color: var(--accent-blue);
+    border: none;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: var(--transition);
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);
+}
+
+.premium-submit-btn:hover {
+    background-color: var(--accent-blue-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
+}
+
+.premium-submit-btn:active {
+    transform: translateY(0);
+}
+
+/* Interactive Feedback Messages Logger Line style */
+.live-status-log {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-muted);
+    text-align: center;
+    min-height: 20px;
+}
+
+/* Divider rule line style custom style */
+.section-divider {
+    border: 0;
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--border-color), transparent);
+    margin: 0 auto 30px auto;
+    width: 100%;
+}
+
+/* ==========================================================================
+   FOOTER REGULATORY STANDARDS COMPLIANCE SECTOR
+   ========================================================================== */
+.security-disclaimer {
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.6;
+    text-align: center;
+    border-top: 1px solid var(--border-color);
+    padding-top: 20px;
+}
+
+/* ==========================================================================
+   RESPONSIVE DESIGN VIEWPORT QUERIES (MOBILE FIX)
+   ========================================================================== */
+@media (max-width: 768px) {
+    .navbar {
+        padding: 14px 20px;
+    }
+    
+    .nav-right {
+        gap: 12px;
+    }
+    
+    .nav-user-profile {
+        display: none; /* Hides profile text on small mobile viewports */
+    }
+
+    .parser-card {
+        padding: 24px;
+    }
+
+    .parser-grid-form {
+        grid-template-columns: 1fr; /* Stack inputs cleanly vertically on small devices */
+        gap: 20px;
+    }
+}

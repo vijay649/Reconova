@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reconova | Invoice Parser</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/style.css">
+
+    <script>
+        (function () {
+            const token = localStorage.getItem("token");
+            if (!token || token.trim() === "") {
+                window.location.replace("../pages/login.html");
+            }
+        })();
+    </script>
+</head>
+<body class="parser-body">
+
+    <header class="navbar">
+        <div class="nav-left">
+            <div class="nav-logo">R</div>
+            <span class="brand-name">Reconova</span>
+        </div>
+        
+        <div class="nav-right">
+            <button onclick="goDashboard()" class="nav-link-btn">
+                📊 Dashboard
+            </button>
+            
+            <div class="nav-user-profile">
+                <div class="user-meta">
+                    <span id="username" class="user-name">Loading...</span>
+                    <span id="role" class="user-role-badge">USER</span>
+                </div>
+            </div>
+
+            <button onclick="logout()" class="nav-logout-btn">
+                🚪 Logout
+            </button>
+        </div>
+    </header>
+
+    <main class="parser-wrapper">
+        <div class="parser-card">
+            
+            <div class="card-header">
+                <h1>Invoice Data Extractor</h1>
+                <p>Upload your marketplace invoices in bulk to convert them into perfectly formatted spreadsheets instantly.</p>
+            </div>
+
+            <div class="parser-grid-form">
+                
+                <div class="form-control">
+                    <label for="sourceSelect">
+                        <span class="step-num">1</span> Select Marketplace Source
+                    </label>
+                    <div class="select-wrapper">
+                        <select id="sourceSelect" class="clean-select">
+                            <option value="amazon">Amazon</option>
+                            <option value="swiggy">Swiggy</option>
+                            <option value="zomato">Zomato</option>
+                            <option value="blinkit">Blinkit</option>
+                            <option value="flipkart">Flipkart</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-control">
+                    <label>
+                        <span class="step-num">2</span> Select Document Directory
+                    </label>
+                    <div class="upload-dropzone">
+                        <input 
+                            type="file" 
+                            id="folderInput"
+                            webkitdirectory
+                            directory
+                            multiple
+                            class="hidden-input"
+                            onchange="updateFolderStatus()"
+                        >
+                        <label for="folderInput" class="dropzone-trigger">
+                            <div class="upload-icon">📁</div>
+                            <span class="upload-text-main">Choose Folder to Parse</span>
+                            <span class="upload-text-sub" id="fileCountDisplay">Supports bulk PDF parsing seamlessly</span>
+                        </label>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="action-container">
+                <button id="runParserBtn" onclick="uploadFolder()" class="premium-submit-btn">
+                    🚀 Run Parser & Generate Excel
+                </button>
+                <div id="status" class="live-status-log"></div>
+            </div>
+
+            <footer class="security-disclaimer">
+                🔒 <strong>Data Privacy Guarantee:</strong> Document parsing executes entirely within temporary application memory context. Zero raw storage persistence layer active.
+            </footer>
+
+        </div>
+    </main>
+
+    <script src="../js/config.js"></script>
+    <script src="../js/script.js"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const user = JSON.parse(localStorage.getItem("user"));
+
+            if (user) {
+                document.getElementById("username").innerText = user.name ?? "Active User";
+                
+                const roleEl = document.getElementById("role");
+                if (roleEl) {
+                    const currentRole = (user.role ?? "user").toUpperCase();
+                    roleEl.innerText = currentRole;
+                    if(user.role === "admin") {
+                        roleEl.classList.add("admin-theme");
+                    }
+                }
+            } else {
+                logout();
+            }
+        });
+
+        // Interactive structural validation helper for folder selection feedback
+        function updateFolderStatus() {
+            const input = document.getElementById('folderInput');
+            const display = document.getElementById('fileCountDisplay');
+            if(input.files.length > 0) {
+                display.innerText = `Selected: ${input.files.length} documents queued`;
+                display.style.color = '#16a34a'; // Soft green for success state
+            }
+        }
+
+        function goDashboard() {
+            const user = JSON.parse(localStorage.getItem("user"));
+            if (user && user.role === "admin") {
+                window.location.href = "../pages/admin-dashboard.html";
+            } else {
+                window.location.href = "../pages/dashboard.html";
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem("token");
+            localStorage.removeItem("user");
+            window.location.href = "../pages/login.html";
+        }
+    </script>
+</body>
+</html>
