@@ -1,31 +1,10 @@
-// const token = localStorage.getItem("token");
-
-
-// if(!token){
-
-//     alert(
-//         "Please login first"
-//     );
-
-//     window.location.href =
-//     "login.html";
-
-// }
-
-
 // =====================================
 // Reconova Authentication Guard
 // =====================================
 
 
-// Get JWT token
+const token = localStorage.getItem("token");
 
-const token = localStorage.getItem(
-    "token"
-);
-
-
-// Get logged user
 
 const user =
 JSON.parse(
@@ -36,8 +15,9 @@ JSON.parse(
 
 
 // =====================================
-// TOKEN CHECK
+// LOGIN CHECK
 // =====================================
+
 
 if(!token || !user){
 
@@ -45,36 +25,31 @@ if(!token || !user){
     localStorage.clear();
 
 
-    window.location.href =
-    "login.html";
+    window.location.href="/login";
 
 
 }
 
 
 
+
 // =====================================
-// OPTIONAL ROLE CHECK
+// CURRENT ROUTE
 // =====================================
 
 
-// Current page name
-
-const currentPage =
-window.location.pathname
-.split("/")
-.pop();
-
+const path =
+window.location.pathname;
 
 
 
 // =====================================
-// ADMIN PAGE PROTECTION
+// ADMIN PROTECTION
 // =====================================
 
 
 if(
-    currentPage === "admin-dashboard.html"
+    path.includes("/admin")
 ){
 
 
@@ -88,11 +63,11 @@ if(
         );
 
 
-        window.location.href =
-        "dashboard.html";
+        window.location.href="/dashboard";
 
 
     }
+
 
 }
 
@@ -101,15 +76,13 @@ if(
 
 
 // =====================================
-// USER PARSER ACCESS
+// PARSER PROTECTION
 // =====================================
 
 
-// Parser page allowed for
-// both user and admin
-
 if(
-    currentPage === "index.html"
+    path.includes("/index.html") ||
+    path === "/"
 ){
 
 
@@ -119,10 +92,10 @@ if(
     ){
 
 
-        window.location.href =
-        "login.html";
+        window.location.href="/login";
 
 
     }
+
 
 }

@@ -1,55 +1,90 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
 
-    <title>Login</title>
+    <meta charset="UTF-8">
 
-    <link rel="stylesheet" href="../css/auth.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Reconova Login</title>
+
+    <link rel="stylesheet" href="/css/auth.css">
 
 </head>
 
+
 <body>
 
-    <div class="auth-card">
 
-        <h1>Login</h1>
+<div class="auth-card">
 
-        <form id="loginForm">
 
-            <input
-                type="email"
-                id="email"
-                placeholder="Email"
-                required>
+    <h1>
+        Login
+    </h1>
 
-            <input
-                type="password"
-                id="password"
-                placeholder="Password"
-                required>
 
-            <button type="submit">
-                Login
-            </button>
 
-            <p class="auth-link">Don't have an account?
+    <form id="loginForm">
 
-                <a href="signup.html">
-                    Create Account
-                </a>
 
-             </p>
+        <input
+            type="email"
+            id="email"
+            placeholder="Email"
+            required
+        >
 
-        </form>
 
-        <p id="message"></p>
 
-    </div>
+        <input
+            type="password"
+            id="password"
+            placeholder="Password"
+            required
+        >
 
-    <script src="../js/config.js"></script>
-    <!-- <script src="../js/auth_guard.js"></script> -->
-    <script src="../js/login.js"></script>
+
+
+        <button type="submit">
+
+            Login
+
+        </button>
+
+
+
+        <p class="auth-link">
+
+            Don't have an account?
+
+            <a href="/signup">
+
+                Create Account
+
+            </a>
+
+
+        </p>
+
+
+    </form>
+
+
+
+    <p id="message"></p>
+
+
+</div>
+
+
+
+<script src="/js/config.js"></script>
+
+<script src="/js/login.js"></script>
+
+
 
 </body>
 

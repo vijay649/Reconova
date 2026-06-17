@@ -3,225 +3,212 @@ document.getElementById("loginForm");
 
 
 loginForm.addEventListener(
+"submit",
+async (e)=>{
 
-    "submit",
 
-    async (e) => {
+e.preventDefault();
 
 
-        e.preventDefault();
 
+const email =
+document
+.getElementById("email")
+.value
+.trim();
 
 
-        const email =
-        document
-        .getElementById("email")
-        .value
-        .trim();
 
+const password =
+document
+.getElementById("password")
+.value
+.trim();
 
 
-        const password =
-        document
-        .getElementById("password")
-        .value
-        .trim();
 
+if(!email || !password){
 
 
-        if(!email || !password){
+alert(
+"Email and Password are required"
+);
 
-            alert(
-                "Email and Password are required"
-            );
 
-            return;
+return;
 
-        }
 
+}
 
 
-        try{
 
+try{
 
-            // const response =
-            // await fetch(
 
-            //     `${API_BASE_URL}/auth/login?email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`,
+const response =
+await fetch(
 
-            //     {
-            //         method:"POST"
-            //     }
+`${API_BASE_URL}/auth/login`,
 
-            // );
-            const response =
-                await fetch(
-                    `${API_BASE_URL}/auth/login`,
-                    {
-                        method:"POST",
+{
 
-                        headers:{
-                            "Content-Type":"application/json"
-                        },
+method:"POST",
 
-                        body:JSON.stringify({
 
-                            email:email,
+headers:{
 
-                            password:password
 
-                        })
-                    }
-            );
+"Content-Type":
+"application/json"
 
+},
 
 
-            const data =
-            await response.json();
+body:JSON.stringify({
 
+email,
 
+password
 
+})
 
-            if(response.ok){
-
-
-                // ============================
-                // CLEAR OLD SESSION
-                // ============================
-
-                localStorage.removeItem(
-                    "token"
-                );
-
-                localStorage.removeItem(
-                    "user"
-                );
-
-
-
-                // ============================
-                // SAVE TOKEN
-                // ============================
-
-                localStorage.setItem(
-
-                    "token",
-
-                    data.access_token
-
-                );
-
-
-
-
-                // ============================
-                // SAVE USER DATA
-                // ============================
-
-
-                localStorage.setItem(
-
-                    "user",
-
-                    JSON.stringify(
-                        data.user
-                    )
-
-                );
-
-
-
-
-                console.log(
-                    "LOGIN USER:",
-                    data.user
-                );
-
-
-
-
-                alert(
-                    "Login Successful"
-                );
-
-
-
-
-                // ============================
-                // ROLE BASE REDIRECT
-                // ============================
-
-
-                const role =
-                data.user.role
-                .toLowerCase();
-
-
-
-                if(role === "admin"){
-
-
-                    window.location.href =
-                    "admin-dashboard.html";
-
-
-                }
-
-                else{
-
-
-                    window.location.href =
-                    "dashboard.html";
-
-
-                }
-
-
-            }
-
-
-
-            else{
-
-
-                alert(
-
-                    data.detail ||
-
-                    "Login failed"
-
-                );
-
-
-            }
-
-
-        }
-
-
-
-        catch(error){
-
-
-            console.error(
-
-                "LOGIN ERROR:",
-
-                error
-
-            );
-
-
-            alert(
-
-                "Cannot connect to backend server"
-
-            );
-
-
-        }
-
-
-    }
+}
 
 );
+
+
+
+const data =
+await response.json();
+
+
+
+
+if(response.ok){
+
+
+
+localStorage.clear();
+
+
+
+localStorage.setItem(
+
+"token",
+
+data.access_token
+
+);
+
+
+
+localStorage.setItem(
+
+"user",
+
+JSON.stringify(
+data.user
+)
+
+);
+
+
+
+
+console.log(
+"LOGIN USER:",
+data.user
+);
+
+
+
+alert(
+"Login Successful"
+);
+
+
+
+
+
+const role =
+data.user.role.toLowerCase();
+
+
+
+
+
+// =============================
+// VERCEL ROUTES
+// =============================
+
+
+if(role === "admin"){
+
+
+window.location.href =
+"/admin-dashboard";
+
+
+}
+
+
+else{
+
+
+window.location.href =
+"/dashboard";
+
+
+}
+
+
+
+}
+
+
+
+
+else{
+
+
+alert(
+
+data.detail ||
+
+"Login failed"
+
+);
+
+
+}
+
+
+
+}
+
+
+
+catch(error){
+
+
+console.error(
+
+"LOGIN ERROR:",
+
+error
+
+);
+
+
+alert(
+
+"Cannot connect to backend server"
+
+);
+
+
+}
+
+
+
+});
