@@ -2,7 +2,7 @@
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from database.database import engine
+from backend.database.database import engine
 from database.models import Base
 from fastapi import Depends
 from sqlalchemy.orm import Session
