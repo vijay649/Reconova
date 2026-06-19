@@ -76,7 +76,7 @@ def get_total_uploads():
 async def upload_amazon(files: List[UploadFile] = File(...)):
     results = []
 
-    for file in files:
+    for file in files:  
         try:
             if not file.filename.lower().endswith('.pdf'):
                 continue
