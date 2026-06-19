@@ -31,6 +31,11 @@
     {
       "source": "/",
       "destination": "/pages/login.html"
+    },
+
+    {
+      "source" : "/",
+      "destination": "/pages/index.html"
     }
 
   ]
