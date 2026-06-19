@@ -1,5 +1,6 @@
+
+
 {
-  "cleanUrls": true,
   "rewrites": [
     {
       "source": "/",
@@ -27,10 +28,6 @@
     },
     {
       "source": "/index",
-      "destination": "/pages/index.html"
-    },
-    {
-      "source": "/index.html",
       "destination": "/pages/index.html"
     }
   ]
