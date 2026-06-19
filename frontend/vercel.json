@@ -1,57 +1,37 @@
 {
-  "cleanUrls": false,
-
+  "cleanUrls": true,
   "rewrites": [
-
-    {
-      "source": "/login",
-      "destination": "/pages/login.html"
-    },
-
-    {
-      "source": "/signup",
-      "destination": "/pages/signup.html"
-    },
-
-    {
-      "source": "/verify-otp",
-      "destination": "/pages/verify_otp.html"
-    },
-
-    {
-      "source": "/dashboard",
-      "destination": "/pages/dashboard.html"
-    },
-
-    {
-      "source": "/admin-dashboard",
-      "destination": "/pages/admin-dashboard.html"
-    },
-
     {
       "source": "/",
       "destination": "/pages/login.html"
     },
-
     {
-      "source" : "index.html",
+      "source": "/login",
+      "destination": "/pages/login.html"
+    },
+    {
+      "source": "/signup",
+      "destination": "/pages/signup.html"
+    },
+    {
+      "source": "/verify-otp",
+      "destination": "/pages/verify_otp.html"
+    },
+    {
+      "source": "/dashboard",
+      "destination": "/pages/dashboard.html"
+    },
+    {
+      "source": "/admin-dashboard",
+      "destination": "/pages/admin-dashboard.html"
+    },
+    {
+      "source": "/index",
+      "destination": "/pages/index.html"
+    },
+    {
+      "source": "/index.html",
       "destination": "/pages/index.html"
     }
-
   ]
 }
-
-
-
-// {
-//   "cleanUrls": true,
-//   "rewrites": [
-//     { "source": "/", "destination": "/pages/login.html" },
-//     { "source": "/index.html", "destination": "/pages/index.html" },
-//     { "source": "/index", "destination": "/pages/index.html" },
-//     { "source": "/login", "destination": "/pages/login.html" },
-//     { "source": "/signup", "destination": "/pages/signup.html" },
-//     { "source": "/dashboard", "destination": "/pages/dashboard.html" },
-//     { "source": "/admin-dashboard", "destination": "/pages/admin-dashboard.html" }
-//   ]
-// }
