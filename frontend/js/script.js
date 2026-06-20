@@ -136,38 +136,56 @@
 
 
 
-// =====================================
+// ==========================================
 // SAFED ELEMENT COUNTER CHANGE HANDLER
-// =====================================
-function updateFolderStatus(inputElement) {
+// ==========================================
+function updateFolderStatus() {
+    const input = document.getElementById("folderInput");
+    const display = document.getElementById("fileCountDisplay");
     const status = document.getElementById("status");
-    if (status && inputElement.files) {
+    
+    if (input && input.files) {
         let count = 0;
-        for (const file of inputElement.files) {
-            if (file.name.toLowerCase().endsWith(".pdf")) count++;
+        for (const file of input.files) {
+            if (file.name.toLowerCase().endsWith(".pdf")) {
+                count++;
+            }
         }
-        status.innerText = `📁 ${count} PDF files detected in folder`;
-        status.style.color = "#4b5563";
+        
+        // HTML Dropzone text ko update karein
+        if (display) {
+            display.innerText = `Selected: ${count} documents queued`;
+            display.style.color = '#16a34a';
+        }
+        
+        // Niche ke status container ko reset karein
+        if (status) {
+            status.innerText = `📁 ${count} PDF files detected in folder. Ready to parse!`;
+            status.style.color = "#4b5563";
+        }
     }
 }
 
-// Global scope window validation injection to stop the ReferenceError crash
+// Global scope window clean bindings
 window.updateFolderStatus = updateFolderStatus;
 
 async function uploadFolder() {
-
     const input = document.getElementById("folderInput");
     const sourceSelect = document.getElementById("sourceSelect");
     const status = document.getElementById("status");
     const runBtn = document.getElementById("runParserBtn");
+
+    if (!input || !sourceSelect || !status || !runBtn) {
+        alert("Frontend layout element rendering error.");
+        return;
+    }
 
     const files = input.files;
 
     // =====================================
     // FILE VALIDATION
     // =====================================
-
-    if (!files.length) {
+    if (!files || !files.length) {
         status.innerText = "⚠️ Please select folder first";
         status.style.color = "red";
         return;
@@ -192,7 +210,6 @@ async function uploadFolder() {
     // =====================================
     // TOKEN
     // =====================================
-
     const token = localStorage.getItem("token");
 
     if (!token) {
@@ -204,12 +221,9 @@ async function uploadFolder() {
     // =====================================
     // API
     // =====================================
-
     const source = sourceSelect.value;
     const endpoint = `${API_BASE_URL}/${source}`;
 
-    // Disable the button while a request is in flight so a second
-    // click can't fire a duplicate upload on top of the first.
     runBtn.disabled = true;
 
     try {
@@ -219,38 +233,29 @@ async function uploadFolder() {
         const response = await fetch(endpoint, {
             method: "POST",
             headers: {
-                Authorization: `Bearer ${token}`
+                "Authorization": `Bearer ${token}`
             },
             body: formData
         });
 
         console.log("Response Status:", response.status);
-        console.log("Content Type:", response.headers.get("content-type"));
-        console.log("Content Disposition:", response.headers.get("content-disposition"));
 
         // =====================================
         // ERROR RESPONSE
         // =====================================
-
         if (!response.ok) {
             let message = "Excel generation failed";
-
             try {
                 const error = await response.json();
                 message = error.detail || message;
             } catch (e) {}
-
             throw new Error(message);
         }
 
         // =====================================
         // RECEIVE EXCEL
         // =====================================
-
         const blob = await response.blob();
-
-        console.log("Excel Size:", blob.size, "bytes");
-        console.log("Blob Type:", blob.type);
 
         if (blob.size <= 0) {
             throw new Error("Backend returned empty Excel file");
@@ -259,9 +264,7 @@ async function uploadFolder() {
         // =====================================
         // DOWNLOAD
         // =====================================
-
         const downloadUrl = window.URL.createObjectURL(blob);
-
         const link = document.createElement("a");
         link.href = downloadUrl;
         link.download = `${source.charAt(0).toUpperCase() + source.slice(1)}_Invoice_Output.xlsx`;
@@ -282,11 +285,9 @@ async function uploadFolder() {
         console.error("Download Error:", error);
         status.innerText = "❌ " + error.message;
         status.style.color = "red";
-
     } finally {
         runBtn.disabled = false;
     }
 }
 
-// Expose main function globally as well
 window.uploadFolder = uploadFolder;

@@ -223,7 +223,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from typing import List
 
-# Safe imports for engine and tables
 try:
     from backend.database.database import engine, get_db
 except ModuleNotFoundError:
@@ -236,11 +235,8 @@ Base.metadata.create_all(bind=engine)
 from routers.auth_router import router as auth_router
 from routers.dashboard_router import router as dashboard_router
 from routers.admin_router import router as admin_router
-
-# Auth Dependency Import for endpoint injection
 from auth.dependencies import get_current_user
 
-# Parsers Imports
 from parsers.amazon import upload_amazon
 from parsers.swiggy import upload_swiggy
 from parsers.zomato import upload_zomato
@@ -254,60 +250,52 @@ app = FastAPI(
 )
 
 # =====================================================
-# CORS (FIXED WITH ALL ORIGINS TO COMPLETELY RESOLVE PREFLIGHT/FETCH BLOCKS)
+# CORS FIXED EXPLICITLY (WITH CREDENTIALS SUPPORT)
 # =====================================================
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Production deployment ke blockages ko hataane ke liye wildcard open kiya
-    allow_credentials=False, # Wildcard "*" ke saath credentials False rehna compulsory hai browser safe validation ke liye
+    allow_origins=[
+        "https://amzn-inv.vercel.app",
+        "http://localhost:3000",
+        "http://127.0.0.1:5500",
+        "http://localhost:5173",
+        "http://localhost:8000"
+    ],
+    allow_credentials=True,  # Isko True rakhna mandatory hai agar header me credentials pass ho rahe hain
     allow_methods=["*"],
     allow_headers=["*"],
     expose_headers=["Content-Disposition", "Content-Type"],
 )
 
-# =====================================================
-# INCLUDE ROUTERS
-# =====================================================
 app.include_router(auth_router)
 app.include_router(dashboard_router)
 app.include_router(admin_router)
 
-# =====================================================
-# FIXED MISSING STATS ENDPOINTS
-# =====================================================
 @app.get("/admin/total-users")
 def get_total_users(db: Session = Depends(get_db)):
     try:
-        count = db.query(User).count()
-        return {"total_users": count}
+        return {"total_users": db.query(User).count()}
     except:
         return {"total_users": 0}
 
 @app.get("/admin/verified-users")
 def get_verified_users(db: Session = Depends(get_db)):
     try:
-        count = db.query(User).filter(User.verified == True).count()
-        return {"verified_users": count}
+        return {"verified_users": db.query(User).filter(User.verified == True).count()}
     except:
         return {"verified_users": 0}
 
 @app.get("/admin/total-uploads")
 def get_total_uploads(db: Session = Depends(get_db)):
     try:
-        count = db.query(UploadAnalytics).count()
-        return {"total_uploads": count}
+        return {"total_uploads": db.query(UploadAnalytics).count()}
     except:
         return {"total_uploads": 0}
 
-
-# =====================================================
-# PARSER ROUTES (FIXED FOR BACKGROUND TASKS & CURRENT USER)
-# =====================================================
 app.post("/amazon")(upload_amazon)
 app.post("/swiggy")(upload_swiggy)
 app.post("/flipkart")(upload_flipkart)
 
-# Zomato route with background tasks injection and current_user dependency
 @app.post("/zomato")
 async def zomato_endpoint(
     background_tasks: BackgroundTasks,
@@ -322,7 +310,6 @@ async def zomato_endpoint(
         current_user=current_user
     )
 
-# Blinkit route explicitly handled for background tasks injection
 @app.post("/blinkit")
 async def blinkit_endpoint(
     background_tasks: BackgroundTasks,
@@ -331,10 +318,6 @@ async def blinkit_endpoint(
 ):
     return await upload_blinkit(background_tasks=background_tasks, files=files, db=db)
 
-
-# =====================================================
-# HOME & HEALTH
-# =====================================================
 @app.get("/")
 def home():
     return {"message": "Reconova Backend Running", "status": "active"}
@@ -342,7 +325,3 @@ def home():
 @app.get("/health")
 def health():
     return {"status": "ok"}
-
-@app.on_event("startup")
-def startup_event():
-    print("🚀 Reconova API Started Successfully")

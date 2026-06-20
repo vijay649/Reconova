@@ -129,16 +129,6 @@
             }
         });
 
-        // Interactive structural validation helper for folder selection feedback
-        function updateFolderStatus() {
-            const input = document.getElementById('folderInput');
-            const display = document.getElementById('fileCountDisplay');
-            if(input.files.length > 0) {
-                display.innerText = `Selected: ${input.files.length} documents queued`;
-                display.style.color = '#16a34a'; // Soft green for success state
-            }
-        }
-
         function goDashboard() {
             const user = JSON.parse(localStorage.getItem("user"));
             if (user && user.role === "admin") {
@@ -153,6 +143,6 @@
             localStorage.removeItem("user");
             window.location.href = "/pages/login.html";
         }
-    </>
+    </script>
 </body>
 </html>
