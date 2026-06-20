@@ -129,6 +129,36 @@
             }
         });
 
+        // SAFE & COUPLING-FREE INTERACTIVE VALIDATION HELPER
+        function updateFolderStatus() {
+            const input = document.getElementById('folderInput');
+            const display = document.getElementById('fileCountDisplay');
+            const status = document.getElementById('status');
+            
+            // Yahan safe validation laga di taaki input ya files undefined hone par code crash na kare
+            if (input && input.files && input.files.length > 0) {
+                let count = 0;
+                for (const file of input.files) {
+                    if (file.name.toLowerCase().endsWith(".pdf")) {
+                        count++;
+                    }
+                }
+                
+                if (display) {
+                    display.innerText = `Selected: ${count} documents queued`;
+                    display.style.color = '#16a34a'; 
+                }
+                
+                if (status) {
+                    status.innerText = `📁 ${count} PDF files detected in folder. Ready to parse!`;
+                    status.style.color = "#4b5563";
+                }
+            }
+        }
+
+        // Global context injection to ensure scripts matching
+        window.updateFolderStatus = updateFolderStatus;
+
         function goDashboard() {
             const user = JSON.parse(localStorage.getItem("user"));
             if (user && user.role === "admin") {
