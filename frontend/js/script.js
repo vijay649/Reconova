@@ -137,7 +137,7 @@
 
 
 // =====================================
-# SAFED ELEMENT COUNTER CHANGE HANDLER
+// SAFED ELEMENT COUNTER CHANGE HANDLER
 // =====================================
 function updateFolderStatus(inputElement) {
     const status = document.getElementById("status");
