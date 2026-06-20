@@ -250,15 +250,20 @@ app = FastAPI(
 )
 
 # =====================================================
-# CORS (FIXED WITH EXPOSE HEADERS FOR DOWNLOADS)
+# CORS (FIXED WITH EXPLICIT ORIGINS & EXPOSED HEADERS FOR BULK DOWNLOADS)
 # =====================================================
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "https://amzn-inv.vercel.app",  # Aapki active frontend deployment URL
+        "http://localhost:3000",        # Local testing ke liye
+        "http://127.0.0.1:5500",
+        "http://localhost:5173"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
-    expose_headers=["Content-Disposition"],
+    expose_headers=["Content-Disposition", "Content-Type"],
 )
 
 # =====================================================
@@ -336,3 +341,4 @@ def health():
 @app.on_event("startup")
 def startup_event():
     print("🚀 Reconova API Started Successfully")
+    
