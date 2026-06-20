@@ -217,11 +217,11 @@
 # def startup_event():
 #     print("🚀 Reconova API Started Successfully")
 
-
-from fastapi import FastAPI, BackgroundTasks, Depends, UploadFile, File
+from fastapi import FastAPI, BackgroundTasks, Depends, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from typing import List
+import uvicorn
 
 try:
     from backend.database.database import engine, get_db
@@ -250,18 +250,12 @@ app = FastAPI(
 )
 
 # =====================================================
-# CORS FIXED EXPLICITLY (WITH CREDENTIALS SUPPORT)
+# CORS FIXED FOR ALL INCOMING ROUTE STATUSES (502 / 500 INCLUDED)
 # =====================================================
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "https://amzn-inv.vercel.app",
-        "http://localhost:3000",
-        "http://127.0.0.1:5500",
-        "http://localhost:5173",
-        "http://localhost:8000"
-    ],
-    allow_credentials=True,  # Isko True rakhna mandatory hai agar header me credentials pass ho rahe hain
+    allow_origins=["*"],  # Render free tier ke liye wildcard sabse safe hai taaki error status block na ho
+    allow_credentials=False, 
     allow_methods=["*"],
     allow_headers=["*"],
     expose_headers=["Content-Disposition", "Content-Type"],
@@ -292,6 +286,9 @@ def get_total_uploads(db: Session = Depends(get_db)):
     except:
         return {"total_uploads": 0}
 
+# =====================================================
+# PARSER ENDPOINTS (WITH MEMORY & FAULT SAFETY)
+# =====================================================
 app.post("/amazon")(upload_amazon)
 app.post("/swiggy")(upload_swiggy)
 app.post("/flipkart")(upload_flipkart)
@@ -303,12 +300,18 @@ async def zomato_endpoint(
     db: Session = Depends(get_db),
     current_user = Depends(get_current_user)
 ):
-    return await upload_zomato(
-        background_tasks=background_tasks,
-        files=files,
-        db=db,
-        current_user=current_user
-    )
+    if not files:
+        raise HTTPException(status_code=400, detail="No files uploaded")
+    try:
+        return await upload_zomato(
+            background_tasks=background_tasks,
+            files=files,
+            db=db,
+            current_user=current_user
+        )
+    except Exception as e:
+        print(f"Zomato Parser Error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Parser execution failed: {str(e)}")
 
 @app.post("/blinkit")
 async def blinkit_endpoint(
@@ -316,7 +319,13 @@ async def blinkit_endpoint(
     files: List[UploadFile] = File(...),
     db: Session = Depends(get_db)
 ):
-    return await upload_blinkit(background_tasks=background_tasks, files=files, db=db)
+    if not files:
+        raise HTTPException(status_code=400, detail="No files uploaded")
+    try:
+        return await upload_blinkit(background_tasks=background_tasks, files=files, db=db)
+    except Exception as e:
+        print(f"Blinkit Parser Error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/")
 def home():
