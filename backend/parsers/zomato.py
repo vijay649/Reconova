@@ -204,20 +204,18 @@
 #     )
 
 
-
-
-
 import os
 import re
 import time
 import tempfile
+import shutil
 from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor
 from typing import List
 
 import pandas as pd
 import pdfplumber
-from fastapi import Depends, File, UploadFile, BackgroundTasks
+from fastapi import Depends, File, UploadFile, BackgroundTasks, HTTPException
 from fastapi.responses import FileResponse
 from openpyxl import load_workbook
 from sqlalchemy.orm import Session
@@ -256,15 +254,10 @@ def remove_file(path: str):
 
 
 # =====================================================
-# CORE PDF PARSER FUNCTION (MAIN LOGIC UNTOUCHED)
+# CORE PDF PARSER FUNCTION
 # =====================================================
 def process_pdf(pdf_path_or_stream):
-    """
-    Accepts temporary file path, extracts layout context, 
-    and returns parsed dictionary rows.
-    """
     try:
-        # Extract filename safely from temporary path if it's a string
         base_name = os.path.basename(pdf_path_or_stream) if isinstance(pdf_path_or_stream, str) else "Zomato_Invoice.pdf"
         
         with pdfplumber.open(pdf_path_or_stream) as pdf:
@@ -272,7 +265,6 @@ def process_pdf(pdf_path_or_stream):
                 return []
             text = pdf.pages[0].extract_text() or ""
 
-        # --- APKA MAIN REGEX LOGIC (UNTOUCHED) ---
         invoice_no = extract(r"Invoice No:\s*([A-Z0-9\-]+)", text)
         invoice_date = extract(r"Invoice Date:\s*([0-9\-]+)", text)
         invoice_period = extract(r"Period:\s*(.*?)\n", text)
@@ -285,46 +277,29 @@ def process_pdf(pdf_path_or_stream):
         merchant_gstin = gstin_matches[1] if len(gstin_matches) > 1 else ""
 
         hsn_code = extract(r"HSN Code:\s*(\d+)", text)
-        service_desc = extract(
-            r"Service Description:\s*(.*?)\s*Work Description:", text
-        )
+        service_desc = extract(r"Service Description:\s*(.*?)\s*Work Description:", text)
 
         sgst_rate = to_float(extract(r"SGST\s*@\s*([0-9.]+)%", text))
         cgst_rate = to_float(extract(r"CGST\s*@\s*([0-9.]+)%", text))
         igst_rate = to_float(extract(r"IGST\s*@\s*([0-9.]+)%", text))
 
-        invoice_total_amount = to_float(
-            extract(r"Total Amount\s*([\d,]+\.\d+)", text)
-        )
+        invoice_total_amount = to_float(extract(r"Total Amount\s*([\d,]+\.\d+)", text))
 
         matches = re.findall(r"\d+\s+(.*?)\s+([\d,]+\.\d+)", text)
 
         rows = []
-        ignore_words = [
-            "Taxable Amount",
-            "SGST",
-            "CGST",
-            "IGST",
-            "Total Amount",
-        ]
+        ignore_words = ["Taxable Amount", "SGST", "CGST", "IGST", "Total Amount"]
 
         for match in matches:
             particular_name = re.sub(r"^\d+\s*", "", match[0].strip())
-
-            if any(
-                word.lower() in particular_name.lower() for word in ignore_words
-            ):
+            if any(word.lower() in particular_name.lower() for word in ignore_words):
                 continue
 
             taxable_value = to_float(match[1])
-
             sgst_amount = round(taxable_value * sgst_rate / 100, 2)
             cgst_amount = round(taxable_value * cgst_rate / 100, 2)
             igst_amount = round(taxable_value * igst_rate / 100, 2)
-
-            total_amount = round(
-                taxable_value + sgst_amount + cgst_amount + igst_amount, 2
-            )
+            total_amount = round(taxable_value + sgst_amount + cgst_amount + igst_amount, 2)
 
             rows.append({
                 "File Name": base_name,
@@ -351,14 +326,13 @@ def process_pdf(pdf_path_or_stream):
             })
 
         return rows
-
     except Exception as e:
         print(f"Error processing file: {str(e)}")
         return []
 
 
 # =====================================================
-# OPTIMIZED HIGH-PERFORMANCE MULTI-THREADED API (UPDATED SIGNATURE)
+# RENDER TIERS RAM OPTIMIZED API
 # =====================================================
 async def upload_zomato(
     background_tasks: BackgroundTasks,
@@ -371,51 +345,45 @@ async def upload_zomato(
     temp_pdf_paths = []
 
     try:
-        # 1. PDFs ko parallel read karne ke liye temporary paths create karein
+        # CHUNKS READ RUNNER: RAM spikes ko completely rokne ke liye
         for file in files:
             tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".pdf")
-            content = await file.read()
-            tmp.write(content)
-            tmp.close()
+            try:
+                shutil.copyfileobj(file.file, tmp)
+            finally:
+                tmp.close()
+                file.file.close()
             temp_pdf_paths.append(tmp.name)
 
-        # 2. Render CPU Optimization: 300+ files ko Multi-threading ke sath split karein
-        with ThreadPoolExecutor(max_workers=8) as executor:
+        # Render Core optimization: Max workers ko 4 kiya taaki CPU halt na ho
+        with ThreadPoolExecutor(max_workers=4) as executor:
             results = list(executor.map(process_pdf, temp_pdf_paths))
 
-        # Saare workers ke data rows ko flat list me merge karein
         for row_list in results:
             if row_list:
                 all_data.extend(row_list)
 
-        # 3. DataFrame Validation
         df = pd.DataFrame(all_data)
         if df.empty:
             df = pd.DataFrame([{"Message": "No Data Found"}])
 
-        # 4. Create Safe NamedTemporaryFile for Excel Generation (Stops RAM Spikes)
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         excel_temp = tempfile.NamedTemporaryFile(delete=False, suffix=".xlsx")
         excel_filename = f"Zomato_Invoice_Output_{timestamp}.xlsx"
 
-        # 5. Excel write operations inside temporary workbook path
         with pd.ExcelWriter(excel_temp.name, engine="openpyxl") as writer:
             df.to_excel(writer, index=False, sheet_name="Zomato_Invoices")
 
-        # OpenPyXL Auto-fit columns adjustments
         wb = load_workbook(excel_temp.name)
         ws = wb.active
 
         for column_cells in ws.columns:
-            length = max(
-                len(str(cell.value)) if cell.value else 0 for cell in column_cells
-            )
+            length = max(len(str(cell.value)) if cell.value else 0 for cell in column_cells)
             ws.column_dimensions[column_cells[0].column_letter].width = length + 5
 
         wb.save(excel_temp.name)
         wb.close()
 
-        # 6. Database Analytics Tracking log update (Fixed & Safe)
         if files_count > 0 and current_user:
             analytics = UploadAnalytics(
                 user_id=current_user.id, source="zomato", pdf_count=files_count
@@ -423,28 +391,26 @@ async def upload_zomato(
             db.add(analytics)
             db.commit()
 
-        background_tasks.add_task(
-            remove_file,
-            excel_temp.name
-        )
+        background_tasks.add_task(remove_file, excel_temp.name)
 
         return FileResponse(
             path=excel_temp.name,
             filename=excel_filename,
             media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             headers={
-                "Content-Disposition":
-                f'attachment; filename="{excel_filename}"',
-                "Access-Control-Expose-Headers":
-                "Content-Disposition"
+                "Content-Disposition": f'attachment; filename="{excel_filename}"',
+                "Access-Control-Expose-Headers": "Content-Disposition"
             }
         )
 
+    except Exception as e:
+        print(f"Global Exception Handler Caught: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Internal Server Error: {str(e)}")
+
     finally:
-        # Input temporary storage safe cleanup
         for path in temp_pdf_paths:
             try:
                 if os.path.exists(path):
                     os.remove(path)
-            except Exception:
+            except:
                 pass
