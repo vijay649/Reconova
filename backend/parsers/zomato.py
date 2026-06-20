@@ -205,6 +205,8 @@
 
 
 
+
+
 import os
 import re
 import time
@@ -356,13 +358,13 @@ def process_pdf(pdf_path_or_stream):
 
 
 # =====================================================
-# OPTIMIZED HIGH-PERFORMANCE MULTI-THREADED API
+# OPTIMIZED HIGH-PERFORMANCE MULTI-THREADED API (UPDATED SIGNATURE)
 # =====================================================
 async def upload_zomato(
     background_tasks: BackgroundTasks,
-    files: List[UploadFile] = File(...),
-    current_user=Depends(get_current_user),
-    db: Session = Depends(get_db),
+    files: List[UploadFile],
+    db: Session,
+    current_user
 ):
     all_data = []
     files_count = len(files)
@@ -378,7 +380,6 @@ async def upload_zomato(
             temp_pdf_paths.append(tmp.name)
 
         # 2. Render CPU Optimization: 300+ files ko Multi-threading ke sath split karein
-        # max_workers=8 lagaya hai taaki background parsing makkhan jaisi speed se chale
         with ThreadPoolExecutor(max_workers=8) as executor:
             results = list(executor.map(process_pdf, temp_pdf_paths))
 
@@ -414,26 +415,29 @@ async def upload_zomato(
         wb.save(excel_temp.name)
         wb.close()
 
-        # 6. Database Analytics Tracking log update
-        if files_count > 0:
+        # 6. Database Analytics Tracking log update (Fixed & Safe)
+        if files_count > 0 and current_user:
             analytics = UploadAnalytics(
                 user_id=current_user.id, source="zomato", pdf_count=files_count
             )
             db.add(analytics)
             db.commit()
 
-        # Temporary files ko schedule karo download complete hone ke baad system se clear karne ke liye
-        background_tasks.add_task(remove_file, excel_temp.name)
+        background_tasks.add_task(
+            remove_file,
+            excel_temp.name
+        )
 
-        # 7. HIGH-PERFORMANCE CHROME AUTO DOWNLOAD STREAM
         return FileResponse(
             path=excel_temp.name,
             filename=excel_filename,
             media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             headers={
-                "Content-Disposition": f'attachment; filename="{excel_filename}"',
-                "Access-Control-Expose-Headers": "Content-Disposition",
-            },
+                "Content-Disposition":
+                f'attachment; filename="{excel_filename}"',
+                "Access-Control-Expose-Headers":
+                "Content-Disposition"
+            }
         )
 
     finally:

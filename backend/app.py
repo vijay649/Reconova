@@ -216,11 +216,10 @@
 # @app.on_event("startup")
 # def startup_event():
 #     print("🚀 Reconova API Started Successfully")
-
-
 from fastapi import FastAPI, BackgroundTasks, Depends, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
+from typing import List
 
 # Safe imports for engine and tables
 try:
@@ -235,6 +234,9 @@ Base.metadata.create_all(bind=engine)
 from routers.auth_router import router as auth_router
 from routers.dashboard_router import router as dashboard_router
 from routers.admin_router import router as admin_router
+
+# Auth Dependency Import for endpoint injection
+from auth.dependencies import get_current_user
 
 # Parsers Imports
 from parsers.amazon import upload_amazon
@@ -302,26 +304,32 @@ def get_total_uploads(db: Session = Depends(get_db)):
 
 
 # =====================================================
-# PARSER ROUTES (FIXED FOR BACKGROUND TASKS)
+# PARSER ROUTES (FIXED FOR BACKGROUND TASKS & CURRENT USER)
 # =====================================================
 app.post("/amazon")(upload_amazon)
 app.post("/swiggy")(upload_swiggy)
 app.post("/flipkart")(upload_flipkart)
 
-# Zomato route explicitly handled for background tasks injection (300+ Files Safe)
+# Zomato route with background tasks injection and current_user dependency
 @app.post("/zomato")
 async def zomato_endpoint(
     background_tasks: BackgroundTasks,
-    files: list[UploadFile] = File(...),
-    db: Session = Depends(get_db)
+    files: List[UploadFile] = File(...),
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_user)
 ):
-    return await upload_zomato(background_tasks=background_tasks, files=files, db=db)
+    return await upload_zomato(
+        background_tasks=background_tasks,
+        files=files,
+        db=db,
+        current_user=current_user
+    )
 
 # Blinkit route explicitly handled for background tasks injection
 @app.post("/blinkit")
 async def blinkit_endpoint(
     background_tasks: BackgroundTasks,
-    files: list[UploadFile] = File(...),
+    files: List[UploadFile] = File(...),
     db: Session = Depends(get_db)
 ):
     return await upload_blinkit(background_tasks=background_tasks, files=files, db=db)
@@ -341,4 +349,3 @@ def health():
 @app.on_event("startup")
 def startup_event():
     print("🚀 Reconova API Started Successfully")
-    
