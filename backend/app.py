@@ -216,6 +216,8 @@
 # @app.on_event("startup")
 # def startup_event():
 #     print("🚀 Reconova API Started Successfully")
+
+
 from fastapi import FastAPI, BackgroundTasks, Depends, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
@@ -252,17 +254,12 @@ app = FastAPI(
 )
 
 # =====================================================
-# CORS (FIXED WITH EXPLICIT ORIGINS & EXPOSED HEADERS FOR BULK DOWNLOADS)
+# CORS (FIXED WITH ALL ORIGINS TO COMPLETELY RESOLVE PREFLIGHT/FETCH BLOCKS)
 # =====================================================
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "https://amzn-inv.vercel.app",  # Aapki active frontend deployment URL
-        "http://localhost:3000",        # Local testing ke liye
-        "http://127.0.0.1:5500",
-        "http://localhost:5173"
-    ],
-    allow_credentials=True,
+    allow_origins=["*"],  # Production deployment ke blockages ko hataane ke liye wildcard open kiya
+    allow_credentials=False, # Wildcard "*" ke saath credentials False rehna compulsory hai browser safe validation ke liye
     allow_methods=["*"],
     allow_headers=["*"],
     expose_headers=["Content-Disposition", "Content-Type"],
