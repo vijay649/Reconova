@@ -12,7 +12,10 @@
 
 import axios from "axios";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
+// Fallback chain ensures it points to live Render backend if VITE_API_URL is undefined
+const API_URL =
+   import.meta.env.VITE_API_URL ||
+  "https://reconova-1.onrender.com";
 
 export const api = axios.create({
   baseURL: API_URL,
@@ -21,11 +24,18 @@ export const api = axios.create({
   },
 });
 
-// Request interceptor: Agar user logged in hai, toh token headers mein inject karein
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+// Request interceptor: Inject bearer token if available
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
   }
-  return config;
-});
+);
+
+export default api;

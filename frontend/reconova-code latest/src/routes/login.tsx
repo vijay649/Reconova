@@ -34,7 +34,9 @@ function LoginPage() {
       nav({ to: u.role === "admin" ? "/admin" : "/dashboard" });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Login failed");
-    } finally { setLoading(false); }
+    } finally {
+      setLoading(false);
+      }
   };
 
   return (
@@ -80,13 +82,6 @@ function LoginPage() {
           <p className="mt-6 text-center text-sm text-muted-foreground">
             New here? <Link to="/signup" className="font-medium text-primary hover:underline">Create an account</Link>
           </p>
-          <p className="mt-2 text-center text-xs text-muted-foreground">
-            Admin? <Link to="/admin/login" className="hover:underline">Admin login</Link>
-          </p>
-
-          <div className="mt-8 rounded-lg border border-dashed border-border bg-secondary/40 p-3 text-xs text-muted-foreground">
-            <strong>Demo:</strong> demo@reconova.in / demo123 · <strong>Admin:</strong> admin@reconova.in / admin123
-          </div>
         </div>
       </div>
       <CookieNotice />
