@@ -495,35 +495,37 @@
 
 
 
-
-import sys
 import os
+import sys
 
 # Ensure the backend directory is in python's search path
 backend_dir = os.path.dirname(os.path.abspath(__file__))
 if backend_dir not in sys.path:
     sys.path.insert(0, backend_dir)
 
-from fastapi import FastAPI, BackgroundTasks, Depends, UploadFile, File, HTTPException
+import uvicorn
+from fastapi import FastAPI, Depends, UploadFile, File, HTTPException, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
-from typing import List, Optional
-import uvicorn
+from typing import List
 
+# Database imports with fallback safety
 try:
     from backend.database.database import engine, get_db
+    from backend.database.models import Base, User, UploadAnalytics
 except ModuleNotFoundError:
     from database.database import engine, get_db
-
-from database.models import Base, User, UploadAnalytics
+    from database.models import Base, User, UploadAnalytics
 
 # Create database tables if they do not exist
 Base.metadata.create_all(bind=engine)
 
+# Routers
 from routers.auth_router import router as auth_router
 from routers.dashboard_router import router as dashboard_router
 from routers.admin_router import router as admin_router
 
+# Parser Handlers
 from parsers.amazon import upload_amazon
 from parsers.swiggy import upload_swiggy
 from parsers.zomato import upload_zomato
@@ -537,17 +539,18 @@ app = FastAPI(
 )
 
 # =====================================================
-# CORS FIXED FOR VERCEL & PRODUCTION
+# CORS CONFIGURATION (FIXED FOR VERCEL + AXIOS)
 # =====================================================
+origins = [
+    "https://amzn-inv.vercel.app",
+    "http://localhost:5173",
+    "http://localhost:3000",
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "https://amzn-inv.vercel.app",
-        "http://localhost:5173",
-        "http://localhost:3000",
-        "*"
-    ],
-    allow_credentials=False, 
+    allow_origins=origins,
+    allow_credentials=True,  # Set to True so headers/tokens pass through cleanly
     allow_methods=["*"],
     allow_headers=["*"],
     expose_headers=[
@@ -557,6 +560,7 @@ app.add_middleware(
     ],
 )
 
+# Register Router Blueprints
 app.include_router(auth_router)
 app.include_router(dashboard_router)
 app.include_router(admin_router)
@@ -588,56 +592,18 @@ def get_total_uploads(db: Session = Depends(get_db)):
 
 
 # =====================================================
-# PARSER ENDPOINTS (UNIFORM & FAULT SAFE)
+# PARSER ENDPOINTS (REGISTERED DIRECTLY TO RETAIN CORS)
 # =====================================================
 app.post("/amazon")(upload_amazon)
 app.post("/flipkart")(upload_flipkart)
+app.post("/swiggy")(upload_swiggy)
+app.post("/zomato")(upload_zomato)
+app.post("/blinkit")(upload_blinkit)
 
-@app.post("/swiggy")
-async def swiggy_endpoint(
-    files: List[UploadFile] = File(...),
-    db: Session = Depends(get_db)
-):
-    if not files:
-        raise HTTPException(status_code=400, detail="No files uploaded")
-    try:
-        return await upload_swiggy(files=files, db=db)
-    except Exception as e:
-        print(f"Swiggy Parser Error: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Parser execution failed: {str(e)}")
 
-@app.post("/zomato")
-async def zomato_endpoint(
-    background_tasks: BackgroundTasks,
-    files: List[UploadFile] = File(...),
-    db: Session = Depends(get_db)
-):
-    if not files:
-        raise HTTPException(status_code=400, detail="No files uploaded")
-    try:
-        return await upload_zomato(
-            background_tasks=background_tasks,
-            files=files,
-            db=db
-        )
-    except Exception as e:
-        print(f"Zomato Parser Error: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Parser execution failed: {str(e)}")
-
-@app.post("/blinkit")
-async def blinkit_endpoint(
-    background_tasks: BackgroundTasks,
-    files: List[UploadFile] = File(...),
-    db: Session = Depends(get_db)
-):
-    if not files:
-        raise HTTPException(status_code=400, detail="No files uploaded")
-    try:
-        return await upload_blinkit(background_tasks=background_tasks, files=files, db=db)
-    except Exception as e:
-        print(f"Blinkit Parser Error: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
-
+# =====================================================
+# HEALTH & BASE ENDPOINTS
+# =====================================================
 @app.get("/")
 def home():
     return {"message": "Reconova Backend Running", "status": "active"}
@@ -645,3 +611,7 @@ def home():
 @app.get("/health")
 def health():
     return {"status": "ok"}
+
+
+if __name__ == "__main__":
+    uvicorn.run("app:app", host="0.0.0.0", port=8000, reload=True)
