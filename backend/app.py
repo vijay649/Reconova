@@ -494,6 +494,8 @@
 # --------------------------------------------------------------------------------------------------------------------------------
 
 
+
+
 import sys
 import os
 
@@ -515,6 +517,7 @@ except ModuleNotFoundError:
 
 from database.models import Base, User, UploadAnalytics
 
+# Create database tables if they do not exist
 Base.metadata.create_all(bind=engine)
 
 from routers.auth_router import router as auth_router
@@ -534,41 +537,55 @@ app = FastAPI(
 )
 
 # =====================================================
-# CORS FIXED FOR ALL INCOMING ROUTE STATUSES
+# CORS FIXED FOR VERCEL & PRODUCTION
 # =====================================================
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], 
+    allow_origins=[
+        "https://amzn-inv.vercel.app",
+        "http://localhost:5173",
+        "http://localhost:3000",
+        "*"
+    ],
     allow_credentials=False, 
     allow_methods=["*"],
     allow_headers=["*"],
-    expose_headers=["Content-Disposition", "Content-Type"],
+    expose_headers=[
+        "Content-Disposition", 
+        "Content-Type", 
+        "Access-Control-Expose-Headers"
+    ],
 )
 
 app.include_router(auth_router)
 app.include_router(dashboard_router)
 app.include_router(admin_router)
 
+
+# =====================================================
+# ADMIN METRICS ENDPOINTS
+# =====================================================
 @app.get("/admin/total-users")
 def get_total_users(db: Session = Depends(get_db)):
     try:
         return {"total_users": db.query(User).count()}
-    except:
+    except Exception:
         return {"total_users": 0}
 
 @app.get("/admin/verified-users")
 def get_verified_users(db: Session = Depends(get_db)):
     try:
         return {"verified_users": db.query(User).filter(User.verified == True).count()}
-    except:
+    except Exception:
         return {"verified_users": 0}
 
 @app.get("/admin/total-uploads")
 def get_total_uploads(db: Session = Depends(get_db)):
     try:
         return {"total_uploads": db.query(UploadAnalytics).count()}
-    except:
+    except Exception:
         return {"total_uploads": 0}
+
 
 # =====================================================
 # PARSER ENDPOINTS (UNIFORM & FAULT SAFE)
